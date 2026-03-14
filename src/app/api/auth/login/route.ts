@@ -6,7 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import { UserModel, verifyPassword } from "@/models/User";
 
 const LoginSchema = z.object({
-  username: z.string().min(3).max(100).toLowerCase().trim(),
+  username: z.string().min(3).max(100).transform(v => v.toLowerCase().trim()),
   password: z.string().min(6).max(200),
 });
 
