@@ -104,3 +104,29 @@
   font-size: 13px;
 }
 
+.toggleMode {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: rgba(124, 106, 247, 0.9);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font: inherit;
+  transition: color 120ms ease;
+}
+
+.linkButton:hover {
+  color: rgba(124, 106, 247, 1);
+}
+
+.linkButton:active {
+  opacity: 0.8;
+}
+

@@ -6,14 +6,17 @@ import { useMemo, useState, Suspense } from "react";
 import styles from "./login.module.css";
 
 type LoginState = "idle" | "loading" | "error";
+type AuthMode = "login" | "register";
 
 function LoginContent(): React.ReactNode {
   const router = useRouter();
   const params = useSearchParams();
   const from = useMemo(() => params.get("from") ?? "/dashboard", [params]);
 
+  const [mode, setMode] = useState<AuthMode>("login");
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [state, setState] = useState<LoginState>("idle");
   const [error, setError] = useState<string>("");
 
@@ -22,10 +25,31 @@ function LoginContent(): React.ReactNode {
     setState("loading");
     setError("");
 
-    const res = await fetch("/api/auth/login", {
+    // Validaciones básicas
+    if (!username.trim()) {
+      setError("El usuario es requerido.");
+      setState("idle");
+      return;
+    }
+
+    if (!password) {
+      setError("La contraseña es requerida.");
+      setState("idle");
+      return;
+    }
+
+    if (mode === "register" && password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      setState("idle");
+      return;
+    }
+
+    const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
+
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username: username.toLowerCase().trim(), password }),
     });
 
     if (!res.ok) {
@@ -33,7 +57,9 @@ function LoginContent(): React.ReactNode {
       const msg =
         typeof data === "object" && data && "error" in data && typeof (data as { error?: unknown }).error === "string"
           ? (data as { error: string }).error
-          : "No se pudo iniciar sesión.";
+          : mode === "login"
+            ? "No se pudo iniciar sesión."
+            : "No se pudo registrar el usuario.";
       setState("error");
       setError(msg);
       return;
@@ -54,7 +80,9 @@ function LoginContent(): React.ReactNode {
           <h1 className={styles.title}>PDF Agent</h1>
         </div>
         <p className={styles.subtitle}>
-          Inicia sesión para analizar tus PDFs privados. Tu sesión usa una cookie httpOnly con JWT.
+          {mode === "login"
+            ? "Inicia sesión para analizar tus PDFs privados."
+            : "Crea una cuenta para comenzar a analizar PDFs."}
         </p>
 
         <form className={styles.form} onSubmit={onSubmit}>
@@ -66,6 +94,8 @@ function LoginContent(): React.ReactNode {
               onChange={(e) => setUsername(e.target.value)}
               autoComplete="username"
               required
+              minLength={3}
+              maxLength={100}
             />
           </label>
           <label className={styles.label}>
@@ -75,16 +105,69 @@ function LoginContent(): React.ReactNode {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              autoComplete="current-password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
               required
+              minLength={6}
+              maxLength={200}
             />
           </label>
+          {mode === "register" && (
+            <label className={styles.label}>
+              Confirmar Contraseña
+              <input
+                className={styles.input}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={6}
+                maxLength={200}
+              />
+            </label>
+          )}
           <button className={styles.button} disabled={state === "loading"} type="submit">
-            {state === "loading" ? "Entrando…" : "Entrar"}
+            {state === "loading" ? "Procesando…" : mode === "login" ? "Entrar" : "Registrarse"}
           </button>
         </form>
 
         {error ? <p className={styles.error}>{error}</p> : null}
+
+        <div className={styles.toggleMode}>
+          {mode === "login" ? (
+            <>
+              ¿No tienes cuenta?{" "}
+              <button
+                className={styles.linkButton}
+                onClick={() => {
+                  setMode("register");
+                  setError("");
+                  setPassword("");
+                  setConfirmPassword("");
+                }}
+                type="button"
+              >
+                Regístrate
+              </button>
+            </>
+          ) : (
+            <>
+              ¿Ya tienes cuenta?{" "}
+              <button
+                className={styles.linkButton}
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                  setPassword("");
+                  setConfirmPassword("");
+                }}
+                type="button"
+              >
+                Inicia sesión
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
