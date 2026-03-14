@@ -1,0 +1,83 @@
+.box {
+  border: 1px dashed rgba(124, 106, 247, 0.45);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(17, 17, 24, 0.45);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hint {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: rgba(232, 230, 240, 0.85);
+  line-height: 1.35;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.button {
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  background: rgba(10, 10, 15, 0.5);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.buttonPrimary {
+  border-color: rgba(124, 106, 247, 0.55);
+  background: rgba(124, 106, 247, 0.18);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.progress {
+  margin-top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(42, 42, 58, 0.55);
+  overflow: hidden;
+  border: 1px solid rgba(42, 42, 58, 0.9);
+}
+
+.bar {
+  height: 100%;
+  width: var(--w);
+  background: linear-gradient(90deg, rgba(124, 106, 247, 0.9), rgba(124, 106, 247, 0.45));
+}
+
+.status {
+  margin: 10px 0 0 0;
+  font-size: 13px;
+}
+
+.error {
+  color: var(--error);
+}
+
+.success {
+  color: var(--success);
+}
+
