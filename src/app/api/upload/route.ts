@@ -9,7 +9,8 @@ import { DocumentModel } from "@/models/Document";
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_SIZE_MB = 50;
+const MAX_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const UploadFormSchema = z.object({
   sessionId: z.string().trim().min(1).optional(),

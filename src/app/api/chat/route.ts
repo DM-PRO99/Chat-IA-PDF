@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
@@ -53,18 +53,14 @@ export async function POST(req: NextRequest): Promise<Response> {
     sizeKb: d.sizeKb,
   }));
 
-  const system = buildSystemPrompt(foundDocs);
+  const systemPrompt = buildSystemPrompt(foundDocs);
 
-  const apiKey = process.env.GOOGLE_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: "Falta GOOGLE_API_KEY." }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Falta ANTHROPIC_API_KEY." }), { status: 500 });
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
-    systemInstruction: system,
-  });
+  const anthropic = new Anthropic({ apiKey });
 
   const userMsg = {
     id: uuidv4(),
@@ -80,20 +76,34 @@ export async function POST(req: NextRequest): Promise<Response> {
       const encoder = new TextEncoder();
 
       try {
-        const chat = model.startChat({
-          history: history.map((msg) => ({
-            role: msg.role === "assistant" ? "model" : "user",
-            parts: [{ text: msg.content }],
-          })),
+        const response = await anthropic.messages.stream({
+          model: "claude-3-5-sonnet-20241022",
+          max_tokens: 2048,
+          system: [
+            {
+              type: "text",
+              text: systemPrompt,
+              cache_control: { type: "ephemeral" },
+            },
+          ],
+          messages: [
+            ...history.map((msg) => ({
+              role: msg.role as "user" | "assistant",
+              content: msg.content,
+            })),
+            {
+              role: "user" as const,
+              content: message,
+            },
+          ],
         });
 
-        const result = await chat.sendMessageStream(message);
-
-        for await (const chunk of result.stream) {
-          const text = chunk.text();
-          if (!text) continue;
-          assistantText += text;
-          controller.enqueue(encoder.encode(text));
+        for await (const event of response) {
+          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+            const text = event.delta.text;
+            assistantText += text;
+            controller.enqueue(encoder.encode(text));
+          }
         }
 
         controller.close();
