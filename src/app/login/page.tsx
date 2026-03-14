@@ -1,13 +1,13 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 
 import styles from "./login.module.css";
 
 type LoginState = "idle" | "loading" | "error";
 
-export default function LoginPage(): React.ReactNode {
+function LoginContent(): React.ReactNode {
   const router = useRouter();
   const params = useSearchParams();
   const from = useMemo(() => params.get("from") ?? "/dashboard", [params]);
@@ -87,6 +87,14 @@ export default function LoginPage(): React.ReactNode {
         {error ? <p className={styles.error}>{error}</p> : null}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage(): React.ReactNode {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
 

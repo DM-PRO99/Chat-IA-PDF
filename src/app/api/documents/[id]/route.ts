@@ -8,12 +8,12 @@ import { DocumentModel } from "@/models/Document";
 
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   const user = await getAuthUser(req);
   if (!user) return NextResponse.json({ error: "No autenticado." }, { status: 401 });
 
-  const { id } = context.params;
+  const { id } = await context.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return NextResponse.json({ error: "ID inválido." }, { status: 400 });
   }
