@@ -38,7 +38,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   if (file.size > MAX_BYTES) {
-    return NextResponse.json({ error: "El PDF excede 10MB." }, { status: 400 });
+    return NextResponse.json({ error: `El PDF excede ${MAX_FILE_SIZE_MB}MB.` }, { status: 400 });
   }
 
   const sessionId =
